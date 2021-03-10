@@ -32,4 +32,4 @@ if __name__ == '__main__':
 
     print(df)
     print(df.describe(percentiles=[.25, .5, .75, .99]))
-    df.to_csv(f'../../raw/louis_clean/louis_gaudreau_{file}.csv', index=False)
+    df.to_csv(f'../../out/louis_clean/louis_gaudreau_{file}.csv', index=False)

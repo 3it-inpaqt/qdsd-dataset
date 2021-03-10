@@ -1,4 +1,5 @@
-from typing import Iterable, List, Optional, Tuple
+from pathlib import Path
+from typing import Iterable, List, Optional, Tuple, Union
 from zipfile import ZipFile
 
 import matplotlib.pyplot as plt
@@ -100,27 +101,53 @@ def plot_image(x_i, y_i, pixels, image_name: str, interpolation_method: str, pix
     plt.show()
 
 
+def save_image(file_path: Union[str, Path], pixels, interpolation_method: str, pixel_size: float) -> None:
+    """
+    Save interpolated image in file.
+
+    :param file_path: The path where to save the image
+    :param pixels: The list of pixels
+    :param interpolation_method: The pixels interpolation method, used for meta data
+    :param pixel_size: The size of pixels, in voltage, used for meta data
+    """
+
+    # Save interpolated image as file
+    plt.imsave(file_path, pixels, cmap='gray', metadata={
+        'interpolation_method': interpolation_method,
+        'pixel_size': f'{pixel_size:.6f}V',
+    })
+
+
 if __name__ == '__main__':
     pixel_size = 0.0025
     interpolation_method = 'nearest'
+    raw_clean_zip = Path('data/raw_clean.zip')
+    img_out_dir = Path('out/images')
 
     # Open the zip file and iterate over all csv files
-    with ZipFile('data/raw_clean.zip', 'r') as zip_file:
-        for diagram_files in zip_file.namelist():
-            with zip_file.open(diagram_files) as diagram_file:
+    with ZipFile(raw_clean_zip, 'r') as zip_file:
+        for diagram_name in zip_file.namelist():
+            with zip_file.open(diagram_name) as diagram_file:
                 # Plot a specific area of the diagram
                 focus_area = None
                 # focus_area = (-0.460, -0.440, -0.65, -0.63)
 
                 # Load data
                 diagram = pandas.read_csv(diagram_file)
+                file_basename = Path(diagram_name).stem  # Remove extension
 
                 # Plot raw points
-                plot_raw(diagram, diagram_files, focus_area, grid_size=None)
+                plot_raw(diagram, file_basename, focus_area, grid_size=None)
 
                 # Interpolate and plot image
                 x_i, y_i, pixels = image_interpolation(diagram,
                                                        method=interpolation_method,
                                                        step=pixel_size,
                                                        filter_extreme=True)
-                plot_image(x_i, y_i, pixels, diagram_files, interpolation_method, pixel_size, focus_area=focus_area)
+
+                # Plot the image
+                plot_image(x_i, y_i, pixels, file_basename, interpolation_method, pixel_size, focus_area=focus_area)
+
+                # Save the image
+                img_out_dir.mkdir(parents=True, exist_ok=True)
+                save_image(Path(img_out_dir, file_basename + '.png'), pixels, interpolation_method, pixel_size)

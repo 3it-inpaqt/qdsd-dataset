@@ -12,8 +12,35 @@ You need download this folder and unzip in into a `data` folder at the root of t
 
 The folder is organised as:
 
-> __originals/__ - the original data as we received it (before any processing), classed by origin.  
-__raw_clean.zip__ - compressed file containing all data, each CSV file is a stability diagram. The CSV have 3 columns: `x, y, z`. Where `x` and `y` are the gate tension in V and `z` is the measured tension in V.
+* __originals/__ - The original data as we received it (before any processing), classed by origin.  
+  No data processing applied.
+* __raw_clean.zip__ - Compressed files containing all data, each CSV file is a stability diagram. The CSV have 3
+  columns: `x, y, z`. Where `x` and `y` are the gate tension in V and `z` is the measured tension in V.  
+  No data processing applied.
+* __interpolated_images.zip__ - Compressed files containing all diagrams as PNG images. This is mainly used to manually
+  labeled the dataset.  
+  Interpolation and extreme values filter applied (data loss).
+
+# Data processing
+
+The data processing is kept minimal to be as close as possible to the reality of experimentation. However, in some case
+the alteration of data was necessary to be adapted to machine learning applications.
+
+## Interpolation
+
+It is necessary to have the same constant voltage variation between measurements in every stability diagrams. So we use
+the 'nearest' interpolation method to upscale or downscale the resolution of the `x` or `y` axes when it was necessary.
+
+The choice of the 'nearest' interpolation instead of 'linear' or other type of interpolation is motivated by the idea to
+not smooth the values and keeping the original variability.
+
+In the current version, the standard voltage variation is `2.5mV`.
+
+## Filter extreme values
+
+To visually represent the diagrams it was necessary to remove extreme values.
+
+This was done by limiting the values between the 1st and the 99th percentile for each diagrams.
 
 # Removed diagrams
 
