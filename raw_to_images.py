@@ -109,8 +109,8 @@ if __name__ == '__main__':
         for diagram_files in zip_file.namelist():
             with zip_file.open(diagram_files) as diagram_file:
                 # Plot a specific area of the diagram
-                # focus_area = None
-                focus_area = (-0.460, -0.440, -0.65, -0.63)
+                focus_area = None
+                # focus_area = (-0.460, -0.440, -0.65, -0.63)
 
                 # Load data
                 diagram = pandas.read_csv(diagram_file)
@@ -124,4 +124,3 @@ if __name__ == '__main__':
                                                        step=pixel_size,
                                                        filter_extreme=True)
                 plot_image(x_i, y_i, pixels, diagram_files, interpolation_method, pixel_size, focus_area=focus_area)
-                # break
