@@ -17,6 +17,8 @@ The folder is organised as:
 * __raw_clean.zip__ - Compressed files containing all data, each CSV file is a stability diagram. The CSV have 3
   columns: `x, y, z`. Where `x` and `y` are the gate tension in V and `z` is the measured tension in V.  
   No data processing applied.
+* __interpolated_csv.zip__ - Compressed files containing all diagrams as CSV 2D arrays.  
+  Interpolation and rounding applied (data loss).
 * __interpolated_images.zip__ - Compressed files containing all diagrams as PNG images. This is mainly used to manually
   labeled the dataset.  
   Interpolation and extreme values filter applied (data loss).
@@ -40,7 +42,11 @@ In the current version, the standard voltage variation is `2.5mV`.
 
 To visually represent the diagrams it was necessary to remove extreme values.
 
-This was done by limiting the values between the 1st and the 99th percentile for each diagrams.
+This was done by limiting the values between the 1st and the 99th percentile for each diagram.
+
+## Rounding
+
+In some case the voltage value is rounded to 6 decimals (microvolt).
 
 # Removed diagrams
 
@@ -49,6 +55,13 @@ Some unusable original stability diagrams were removed during the cleaning proce
 * louis_gaudreau
   * jul25300s: the voltage range of `x` axes is too small
   * jul29100s: the voltage range of `x` axes is too small
+
+# Processing Scripts
+
+* __data_cleanup/__: originals => raw_clean  
+  Convert specific file structure to a standard one.
+* __raw_to_images/__: raw_clean => interpolated_csv & interpolated_images  
+  Interpolate data to have plottable images ready to be annotated.
 
 # Data contribution
 

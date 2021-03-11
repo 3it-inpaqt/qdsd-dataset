@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Iterable, List, Optional, Tuple, Union
+from typing import Iterable, List, Optional, Tuple
 from zipfile import ZipFile
 
 import matplotlib.pyplot as plt
@@ -7,6 +7,11 @@ import numpy as np
 import pandas
 from matplotlib.pyplot import figure
 from scipy.interpolate import griddata
+
+PIXEL_SIZE = 0.0025  # Volt
+INTERPOLATION_METHOD = 'nearest'
+DATA_DIR = Path('data')
+OUT_DIR = Path('out')
 
 
 def image_interpolation(diagram, step=0.001, method='nearest', filter_extreme=False) -> Tuple:
@@ -101,15 +106,18 @@ def plot_image(x_i, y_i, pixels, image_name: str, interpolation_method: str, pix
     plt.show()
 
 
-def save_image(file_path: Union[str, Path], pixels, interpolation_method: str, pixel_size: float) -> None:
+def save_image(file_path: Path, pixels, interpolation_method: str, pixel_size: float) -> None:
     """
     Save interpolated image in file.
 
     :param file_path: The path where to save the image
-    :param pixels: The list of pixels
+    :param pixels: The list of pixels as a numpy array
     :param interpolation_method: The pixels interpolation method, used for meta data
     :param pixel_size: The size of pixels, in voltage, used for meta data
     """
+
+    # Create directories if necessary
+    file_path.parent.mkdir(parents=True, exist_ok=True)
 
     # Save interpolated image as file
     plt.imsave(file_path, pixels, cmap='gray', metadata={
@@ -118,14 +126,27 @@ def save_image(file_path: Union[str, Path], pixels, interpolation_method: str, p
     })
 
 
-if __name__ == '__main__':
-    pixel_size = 0.0025
-    interpolation_method = 'nearest'
-    raw_clean_zip = Path('data/raw_clean.zip')
-    img_out_dir = Path('out/images')
+def interpolated_csv(file_path: Path, pixels, x_i, y_i, pixel_size: float) -> None:
+    """
+    Save interpolated data as a CSV file.
 
+    :param file_path: The path where to save the CSV. The extension define the file format (GZ or CSV)
+    :param pixels: The list of pixels as a numpy array
+    :param x_i: The x coordinates of the pixels (post interpolation), used information row
+    :param y_i: The y coordinates of the pixels (post interpolation), used information row
+    :param pixel_size: The size of pixels, in voltage, used information row
+    """
+    # Create directories if necessary
+    file_path.parent.mkdir(parents=True, exist_ok=True)
+
+    compact_diagram = np.insert(pixels, 0, [x_i[0][0], y_i[0][0], pixel_size] + [0] * (len(x_i[0]) - 3), 0)
+    np.savetxt(file_path, compact_diagram, delimiter=',', fmt='%.6f',
+               header='First row: x start (V), y start (V), step (V) / Second row to end: values (V)')
+
+
+def main():
     # Open the zip file and iterate over all csv files
-    with ZipFile(raw_clean_zip, 'r') as zip_file:
+    with ZipFile(Path(DATA_DIR, 'raw_clean.zip'), 'r') as zip_file:
         for diagram_name in zip_file.namelist():
             with zip_file.open(diagram_name) as diagram_file:
                 # Plot a specific area of the diagram
@@ -139,15 +160,28 @@ if __name__ == '__main__':
                 # Plot raw points
                 plot_raw(diagram, file_basename, focus_area, grid_size=None)
 
-                # Interpolate and plot image
+                # Interpolate
                 x_i, y_i, pixels = image_interpolation(diagram,
-                                                       method=interpolation_method,
-                                                       step=pixel_size,
-                                                       filter_extreme=True)
+                                                       method=INTERPOLATION_METHOD,
+                                                       step=PIXEL_SIZE,
+                                                       filter_extreme=False)
+                _, _, pixels_no_extreme = image_interpolation(diagram,
+                                                              method=INTERPOLATION_METHOD,
+                                                              step=PIXEL_SIZE,
+                                                              filter_extreme=True)
 
                 # Plot the image
-                plot_image(x_i, y_i, pixels, file_basename, interpolation_method, pixel_size, focus_area=focus_area)
+                plot_image(x_i, y_i, pixels_no_extreme, file_basename, INTERPOLATION_METHOD, PIXEL_SIZE,
+                           focus_area=focus_area)
+
+                # Save interpolated values
+                interpolated_csv(Path(OUT_DIR, 'interpolated_csv', f'{file_basename}.gz'), pixels, x_i, y_i, PIXEL_SIZE)
 
                 # Save the image
-                img_out_dir.mkdir(parents=True, exist_ok=True)
-                save_image(Path(img_out_dir, file_basename + '.png'), pixels, interpolation_method, pixel_size)
+                save_image(Path(OUT_DIR, 'interpolated_images', f'{file_basename}.png'), pixels_no_extreme,
+                           INTERPOLATION_METHOD, PIXEL_SIZE)
+
+
+if __name__ == '__main__':
+    # Processing settings at the top of this file
+    main()
