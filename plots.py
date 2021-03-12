@@ -1,7 +1,16 @@
-from typing import Iterable, List, Optional, Tuple
+from typing import Iterable, Optional, Tuple
 
 import matplotlib.pyplot as plt
 import numpy as np
+from shapely.geometry import Polygon
+
+REGION_SHORT = {
+    '0_electron': '0',
+    '1_electron': '1',
+    '2_electrons': '2',
+    '3_electrons': '3',
+    '4+_electrons': '4+'
+}
 
 
 def plot_raw(diagram, image_name: str, focus_area: Optional[Tuple] = None, grid_size: float = None) -> None:
@@ -35,8 +44,7 @@ def plot_raw(diagram, image_name: str, focus_area: Optional[Tuple] = None, grid_
 
 
 def plot_image(x_i, y_i, pixels, image_name: str, interpolation_method: str, pixel_size: float,
-               annotations: Iterable[Tuple[str, List, List]] = None,
-               focus_area: Optional[Tuple] = None) -> None:
+               regions: Iterable[Tuple[str, Polygon]] = None, focus_area: Optional[Tuple] = None) -> None:
     """
     Plot the interpolated image.
 
@@ -46,17 +54,20 @@ def plot_image(x_i, y_i, pixels, image_name: str, interpolation_method: str, pix
     :param image_name: The name of the image, used for plot title
     :param interpolation_method: The pixels interpolation method, used for plot title
     :param pixel_size: The size of pixels, in voltage, used for plot title
-    :param annotations: The annotation to draw on top of the image
+    :param regions: The charge region annotations to draw on top of the image
     :param focus_area: Optional coordinates to restrict the plotting area. A Tuple as (x_min, x_max, y_min, y_max).
     """
 
-    if annotations is not None:
-        # plt.fill([-0.4, -0.3, -0.4], [-0.4, -0.3, -0.3], 'b', alpha=0.5)
-        for i, (label, region_x, region_y) in enumerate(annotations):
-            plt.fill(region_x, region_y, 'b', alpha=min(0.2 + (0.1 * i), 0.9), snap=True)
-
     plt.imshow(pixels, interpolation='none', cmap='copper',
                extent=[np.min(x_i), np.max(x_i), np.min(y_i), np.max(y_i)])
+
+    if regions is not None:
+        for i, (label, polygon) in enumerate(regions):
+            polygon_x, polygon_y = polygon.exterior.coords.xy
+            plt.fill(polygon_x, polygon_y, 'b', alpha=.3, edgecolor='b', snap=True)
+            label_x, label_y = list(polygon.centroid.coords)[0]
+            plt.text(label_x, label_y, REGION_SHORT[label], ha="center", va="center", color='b')
+
     plt.title(f'{image_name}\ninterpolated ({interpolation_method}) - pixel size {round(pixel_size, 10) * 1_000}mV')
     plt.xlabel('Gate 1 (V)')
     plt.xticks(rotation=30)

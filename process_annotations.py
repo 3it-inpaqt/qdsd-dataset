@@ -4,6 +4,8 @@ from pathlib import Path
 from typing import List, Tuple
 from zipfile import ZipFile
 
+from shapely.geometry import Polygon
+
 from raw_to_images import load_interpolated_csv, plot_image
 
 DATA_DIR = Path('data')
@@ -14,7 +16,7 @@ def clip(n, smallest, largest):
     return max(smallest, min(n, largest))
 
 
-def load_charge_annotations(annotations_json, image_name: str, x, y, snap: int = 1) -> List[Tuple[str, List, List]]:
+def load_charge_annotations(annotations_json, image_name: str, x, y, snap: int = 1) -> List[Tuple[str, Polygon]]:
     """
     Load regions annotation for an image.
 
@@ -60,7 +62,8 @@ def load_charge_annotations(annotations_json, image_name: str, x, y, snap: int =
         x_r = list(map(lambda t: t * step + x[0], x_r))
         y_r = list(map(lambda t: t * step + y[0], y_r))
 
-        regions.append((label_r, x_r, y_r))
+        polygon = Polygon(zip(x_r, y_r))
+        regions.append((label_r, polygon))
 
     return regions
 
