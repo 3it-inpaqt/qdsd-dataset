@@ -80,7 +80,7 @@ def main():
 
                 diagram_annotations = load_charge_annotations(annotations_json, f'{file_basename}.png', x, y, snap=1)
 
-                plot_image(x, y, values, file_basename, 'test', 0.0025, diagram_annotations)
+                plot_image(x, y, values, file_basename, 'nearest', x[1] - x[0], diagram_annotations)
                 break
 
 

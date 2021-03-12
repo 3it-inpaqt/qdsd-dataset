@@ -63,6 +63,10 @@ Some unusable original stability diagrams were removed during the cleaning proce
 * __raw_to_images/__: raw_clean => interpolated_csv & interpolated_images  
   Interpolate data to have plottable images ready to be annotated.
 
+# Annotation tool
+
+[MakeSense Image Annotator](https://www.makesense.ai/) 1.7.0-alpha
+
 # Data contribution
 
 * Louis Gaudreau
