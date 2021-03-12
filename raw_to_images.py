@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Iterable, List, Optional, Tuple
+from typing import IO, Iterable, List, Optional, Tuple, Union
 from zipfile import ZipFile
 
 import matplotlib.pyplot as plt
@@ -76,7 +76,7 @@ def plot_raw(diagram, image_name: str, focus_area: Optional[Tuple] = None, grid_
 
 
 def plot_image(x_i, y_i, pixels, image_name: str, interpolation_method: str, pixel_size: float,
-               annotations: Iterable[Tuple[List, List]] = None,
+               annotations: Iterable[Tuple[str, List, List]] = None,
                focus_area: Optional[Tuple] = None) -> None:
     """
     Plot the interpolated image.
@@ -93,7 +93,7 @@ def plot_image(x_i, y_i, pixels, image_name: str, interpolation_method: str, pix
 
     if annotations is not None:
         # plt.fill([-0.4, -0.3, -0.4], [-0.4, -0.3, -0.3], 'b', alpha=0.5)
-        for i, (region_x, region_y) in enumerate(annotations):
+        for i, (label, region_x, region_y) in enumerate(annotations):
             plt.fill(region_x, region_y, 'b', alpha=min(0.2 + (0.1 * i), 0.9), snap=True)
 
     plt.imshow(pixels, interpolation='none', cmap='copper',
@@ -126,22 +126,38 @@ def save_image(file_path: Path, pixels, interpolation_method: str, pixel_size: f
     })
 
 
-def interpolated_csv(file_path: Path, pixels, x_i, y_i, pixel_size: float) -> None:
+def save_interpolated_csv(file_path: Path, values, x, y, pixel_size: float) -> None:
     """
     Save interpolated data as a CSV file.
 
     :param file_path: The path where to save the CSV. The extension define the file format (GZ or CSV)
-    :param pixels: The list of pixels as a numpy array
-    :param x_i: The x coordinates of the pixels (post interpolation), used information row
-    :param y_i: The y coordinates of the pixels (post interpolation), used information row
-    :param pixel_size: The size of pixels, in voltage, used information row
+    :param values: The list of voltage values as a numpy array
+    :param x: The x coordinates of the pixels (post interpolation), used in information row
+    :param y: The y coordinates of the pixels (post interpolation), used in information row
+    :param pixel_size: The size of pixels, in voltage, used in information row
     """
     # Create directories if necessary
     file_path.parent.mkdir(parents=True, exist_ok=True)
 
-    compact_diagram = np.insert(pixels, 0, [x_i[0][0], y_i[0][0], pixel_size] + [0] * (len(x_i[0]) - 3), 0)
+    compact_diagram = np.insert(values, 0, [x[0][0], y[0][0], pixel_size] + [0] * (len(x[0]) - 3), 0)
     np.savetxt(file_path, compact_diagram, delimiter=',', fmt='%.6f',
                header='First row: x start (V), y start (V), step (V) / Second row to end: values (V)')
+
+
+def load_interpolated_csv(file_path: Union[IO, str, Path]):
+    compact_diagram = np.loadtxt(file_path, delimiter=',')
+    # Extract information
+    x_start, y_start, step = compact_diagram[0][0], compact_diagram[0][1], compact_diagram[0][2]
+
+    # Remove the information row
+    values = np.delete(compact_diagram, 0, 0)
+
+    # Reconstruct the axes
+
+    x = np.arange(values.shape[1]) * step + x_start
+    y = np.arange(values.shape[0]) * step + y_start
+
+    return x, y, values
 
 
 def main():
@@ -175,7 +191,8 @@ def main():
                            focus_area=focus_area)
 
                 # Save interpolated values
-                interpolated_csv(Path(OUT_DIR, 'interpolated_csv', f'{file_basename}.gz'), pixels, x_i, y_i, PIXEL_SIZE)
+                save_interpolated_csv(Path(OUT_DIR, 'interpolated_csv', f'{file_basename}.gz'), pixels, x_i, y_i,
+                                      PIXEL_SIZE)
 
                 # Save the image
                 save_image(Path(OUT_DIR, 'interpolated_images', f'{file_basename}.png'), pixels_no_extreme,
