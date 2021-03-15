@@ -84,7 +84,13 @@ def save_interpolated_csv(file_path: Path, values, x, y, pixel_size: float) -> N
                header='First row: x start (V), y start (V), step (V) / Second row to end: values (V)')
 
 
-def load_interpolated_csv(file_path: Union[IO, str, Path]):
+def load_interpolated_csv(file_path: Union[IO, str, Path]) -> Tuple:
+    """
+    Load the stability diagrams from CSV file.
+
+    :param file_path: The path to the CSV file or the byte stream.
+    :return: The stability diagram data as a tuple: x, y, values
+    """
     compact_diagram = np.loadtxt(file_path, delimiter=',')
     # Extract information
     x_start, y_start, step = compact_diagram[0][0], compact_diagram[0][1], compact_diagram[0][2]

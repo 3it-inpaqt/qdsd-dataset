@@ -7,7 +7,8 @@ from zipfile import ZipFile
 import pandas as pd
 from shapely.geometry import LineString, Polygon
 
-from raw_to_images import load_interpolated_csv, plot_image
+from plots import plot_image
+from raw_to_images import load_interpolated_csv
 
 DATA_DIR = Path('data')
 
