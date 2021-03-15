@@ -145,7 +145,6 @@ def main():
                 transition_lines = load_lines_annotations(lines_annotations_df, f'{file_basename}.png', x, y, snap=1)
 
                 plot_image(x, y, values, file_basename, 'nearest', x[1] - x[0], charge_regions, transition_lines)
-                break
 
 
 if __name__ == '__main__':

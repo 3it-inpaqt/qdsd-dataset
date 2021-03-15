@@ -53,8 +53,8 @@ In some case the voltage value is rounded to 6 decimals (microvolt).
 Some unusable original stability diagrams were removed during the cleaning process:
 
 * louis_gaudreau
-  * jul25300s: the voltage range of `x` axes is too small
-  * jul29100s: the voltage range of `x` axes is too small
+  * jul25300s: the voltage range of `x` axis is too small
+  * jul29100s: the voltage range of `x` axis is too small
 
 # Processing Scripts
 
