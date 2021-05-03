@@ -10,7 +10,9 @@ from raw_to_images import plot_raw
 
 def load_raw_points(file: IO) -> Tuple[List[float], List[float], List]:
     """
-    Load the raw files with all columns (some are useless the game is to find which ones)
+    Load the raw files with all columns (some are useless the game is to find which ones
+    Function based on this notebook (private link) :
+    https://usherbrooke-my.sharepoint.com/:u:/r/personal/roum2013_usherbrooke_ca/Documents/Doctorat/Data/Data%20set%20for%20machine%20learning/data_info.ipynb?csf=1&web=1&e=BOvoam
 
     :param file: The diagram file to load.
     :return: The columns x, y, z according to the selected ones.
@@ -93,14 +95,30 @@ def load_raw_points(file: IO) -> Tuple[List[float], List[float], List]:
 
 
 if __name__ == '__main__':
-    file_name = '1779Dev2-20161127_402'
+
+    count = 0
+
+    # TODO check why "1779Dev2-20161127_473.dat" is not good
+    not_valid = ['1779Dev2-20161127_473.dat']
+
     with ZipFile('../../data/originals/michel_pioro_ladriere.zip', 'r') as zip_file:
-        with zip_file.open(file_name + '.dat', 'r') as file:
-            x, y, values = load_raw_points(file)
+        for file_name in zip_file.namelist():
 
-    df = pd.DataFrame({'x': x, 'y': y, 'z': values})
-    plot_raw(df, file_name)
+            if file_name in not_valid:
+                continue
 
-    print(df)
-    print(df.describe(percentiles=[.25, .5, .75, .99]))
-    # df.to_csv(f'../../out/michel_pioro_ladriere/michel_pioro_ladriere_{file}.csv', index=False)
+            with zip_file.open(file_name, 'r') as file:
+                x, y, values = load_raw_points(file)
+
+            df = pd.DataFrame({'x': x, 'y': y, 'z': values})
+            plot_raw(df, file_name)
+
+            print(f'---------- {file_name[:-4]} ----------')
+            print(df)
+            print(df.describe(percentiles=[.25, .5, .75, .99]))
+
+            # Change '.dat' for '.csv'
+            df.to_csv(f'../../out/raw_clean/michel_pioro_ladriere_{file_name[:-4]}.csv', index=False)
+            count += 1
+
+    print(f'{count} raw diagrams converted to csv')
