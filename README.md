@@ -22,6 +22,7 @@ The folder is organised as:
 * __interpolated_images.zip__ - Compressed files containing all diagrams as PNG images. This is mainly used to manually
   labeled the dataset.  
   Interpolation and extreme values filter applied (data loss).
+* __labels.json__ - Line and charge area labels (exported from [Labelbox](https://labelbox.com/))
 
 # Data processing
 
@@ -65,7 +66,7 @@ Some unusable original stability diagrams were removed during the cleaning proce
 
 # Annotation tool
 
-[MakeSense Image Annotator](https://www.makesense.ai/) 1.7.0-alpha
+[Labelbox](https://labelbox.com/)
 
 # Data contribution
 
