@@ -45,12 +45,11 @@ def coord_to_volt(coord: Iterable[float], min_coord: int, max_coord: int, value_
     return coord
 
 
-def load_charge_annotations(annotations_json, x, y, snap: int = 1) -> List[Tuple[str, Polygon]]:
+def load_charge_annotations(charge_areas: Iterable, x, y, snap: int = 1) -> List[Tuple[str, Polygon]]:
     """
     Load regions annotation for an image.
 
-    :param annotations_json: The json structure containing all annotations
-    :param image_name: The name of the image (should match with the name in the annotation file)
+    :param charge_areas: List of charge area label as json object (from Labelbox export)
     :param x: The x axis of the diagram (in volt)
     :param y: The y axis of the diagram (in volt)
     :param snap: The snap margin, every points near to image border at this distance will be rounded to the image border
@@ -58,35 +57,21 @@ def load_charge_annotations(annotations_json, x, y, snap: int = 1) -> List[Tuple
     :return: The list of regions annotation for the image, as (label, shapely.geometry.Polygon)
     """
 
-    if image_name not in annotations_json:
-        raise RuntimeError(f'"{image_name}" annotation not found')
-
-    annotation_json = annotations_json[image_name]
-
     # Define borders for snap
     min_x, max_x = 0, len(x) - 1
     min_y, max_y = 0, len(y) - 1
     # Step (should be the same for every measurement)
     step = x[1] - x[0]
 
-    regions = []
+    processed_areas = []
+    for area in charge_areas:
+        area_x = coord_to_volt((p['x'] for p in area['polygon']), min_x, max_x, x[0], step, snap)
+        area_y = coord_to_volt((p['y'] for p in area['polygon']), min_y, max_y, y[0], step, snap, True)
 
-    for region in annotation_json['regions'].values():
-        x_r = region['shape_attributes']['all_points_x']
-        y_r = region['shape_attributes']['all_points_y']
-        label_r = region['region_attributes']['label']
+        area_obj = Polygon(zip(area_x, area_y))
+        processed_areas.append((area['value'], area_obj))
 
-        x_r = coord_to_volt(x_r, min_x, max_x, x[0], step, snap)
-        y_r = coord_to_volt(y_r, min_y, max_y, y[0], step, snap, True)
-
-        # Close regions
-        x_r.append(x_r[-1])
-        y_r.append(y_r[-1])
-
-        polygon = Polygon(zip(x_r, y_r))
-        regions.append((label_r, polygon))
-
-    return regions
+    return processed_areas
 
 
 def load_lines_annotations(lines: Iterable, x, y, snap: int = 1):
@@ -112,8 +97,8 @@ def load_lines_annotations(lines: Iterable, x, y, snap: int = 1):
         line_x = coord_to_volt((p['x'] for p in line['line']), min_x, max_x, x[0], step, snap)
         line_y = coord_to_volt((p['y'] for p in line['line']), min_y, max_y, y[0], step, snap, True)
 
-        line = LineString(zip(line_x, line_y))
-        processed_lines.append(line)
+        line_obj = LineString(zip(line_x, line_y))
+        processed_lines.append(line_obj)
 
     return processed_lines
 
@@ -141,12 +126,12 @@ def main():
                 current_labels = labels[f'{file_basename}.png']['Label']['objects']
 
                 # Load annotation and convert the coordinates to volt
-                transition_lines = load_lines_annotations(filter(lambda x: x['title'] == 'line', current_labels), x, y,
+                transition_lines = load_lines_annotations(filter(lambda l: l['title'] == 'line', current_labels), x, y,
                                                           snap=1)
-                # charge_regions = load_charge_annotations(filter(lambda x: x.title != 'line', current_labels), x, y, snap=1)
+                charge_regions = load_charge_annotations(filter(lambda l: l['title'] != 'line', current_labels), x, y,
+                                                         snap=1)
 
-                plot_image(x, y, values, file_basename, 'nearest', x[1] - x[0], charge_regions=None,
-                           transition_lines=transition_lines)
+                plot_image(x, y, values, file_basename, 'nearest', x[1] - x[0], charge_regions, transition_lines)
 
 
 if __name__ == '__main__':
