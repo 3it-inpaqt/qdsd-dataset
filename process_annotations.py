@@ -74,7 +74,7 @@ def load_charge_annotations(charge_areas: Iterable, x, y, snap: int = 1) -> List
     return processed_areas
 
 
-def load_lines_annotations(lines: Iterable, x, y, snap: int = 1):
+def load_lines_annotations(lines: Iterable, x, y, snap: int = 1) -> List[LineString]:
     """
     Load transition line annotations for an image.
 
@@ -104,7 +104,7 @@ def load_lines_annotations(lines: Iterable, x, y, snap: int = 1):
 
 
 def main():
-    # Open the json file that can contain annotations for every diagrams
+    # Open the json file that contains annotations for every diagrams
     with open(Path(DATA_DIR, 'labels.json'), 'r') as annotations_file:
         labels_json = json.load(annotations_file)
 
