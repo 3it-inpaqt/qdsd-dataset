@@ -107,13 +107,13 @@ if __name__ == '__main__':
             if file_name in not_valid:
                 continue
 
+            print(f'---------- {file_name[:-4]} ----------')
             with zip_file.open(file_name, 'r') as file:
                 x, y, values = load_raw_points(file)
 
             df = pd.DataFrame({'x': x, 'y': y, 'z': values})
             plot_raw(df, file_name)
 
-            print(f'---------- {file_name[:-4]} ----------')
             print(df)
             print(df.describe(percentiles=[.25, .5, .75, .99]))
 

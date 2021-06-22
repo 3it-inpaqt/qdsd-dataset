@@ -56,6 +56,7 @@ Some unusable original stability diagrams were removed during the cleaning proce
 * louis_gaudreau
   * jul25300s: the voltage range of `x` axis is too small
   * jul29100s: the voltage range of `x` axis is too small
+  * sep03010s: no line found
 
 # Processing Scripts
 

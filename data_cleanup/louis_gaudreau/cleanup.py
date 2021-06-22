@@ -19,6 +19,7 @@ def load_raw_points(file_path: Union[IO, str, Path]) -> Tuple[List[float], List[
     # Read file
     data = np.genfromtxt(file_path, delimiter=',', skip_footer=1)
     # Chose the columns
+    # We expect the format as x, y, z or x1 x2 y z1 z2 (but only one z contains diagram values)
     return data[:, 3], data[:, 1], data[:, 5]
 
 
