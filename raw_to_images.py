@@ -9,7 +9,7 @@ from scipy.interpolate import griddata
 
 from plots import plot_image, plot_raw
 
-PIXEL_SIZE = 0.0025  # Volt
+PIXEL_SIZE = 0.0010  # Volt
 INTERPOLATION_METHOD = 'nearest'
 DATA_DIR = Path('data')
 OUT_DIR = Path('out')
@@ -137,12 +137,12 @@ def main():
                            focus_area=focus_area)
 
                 # Save interpolated values
-                save_interpolated_csv(Path(OUT_DIR, 'interpolated_csv', f'{file_basename}.gz'), pixels, x_i, y_i,
-                                      PIXEL_SIZE)
+                save_interpolated_csv(Path(OUT_DIR, f'interpolated_{PIXEL_SIZE * 1000}mV_csv', f'{file_basename}.gz'),
+                                      pixels, x_i, y_i, PIXEL_SIZE)
 
                 # Save the image
-                save_image(Path(OUT_DIR, 'interpolated_images', f'{file_basename}.png'), pixels_no_extreme,
-                           INTERPOLATION_METHOD, PIXEL_SIZE)
+                save_image(Path(OUT_DIR, f'interpolated_{PIXEL_SIZE * 1000}mV_images', f'{file_basename}.png'),
+                           pixels_no_extreme, INTERPOLATION_METHOD, PIXEL_SIZE)
 
 
 if __name__ == '__main__':

@@ -24,8 +24,10 @@ def load_raw_points(file_path: Union[IO, str, Path]) -> Tuple[List[float], List[
 
 
 if __name__ == '__main__':
+    # The file have to be process one by one because the column format are not always the same
     file = 'jul25300s'
-    with ZipFile('../../data/originals/louis_gaudreau.zip', 'r') as zip_file:
+    is_double_dot = True  # False = single
+    with ZipFile('../data/originals/louis_gaudreau.zip', 'r') as zip_file:
         x, y, values = load_raw_points(zip_file.open(file + '.grey'))
 
     df = pd.DataFrame({'x': x, 'y': y, 'z': values})
@@ -33,4 +35,8 @@ if __name__ == '__main__':
 
     print(df)
     print(df.describe(percentiles=[.25, .5, .75, .99]))
-    df.to_csv(f'../../out/raw_clean/louis_gaudreau_{file}.csv', index=False)
+
+    # Save CSV file
+    out_dir = Path(f'../out/raw_clean/{"double" if is_double_dot else "single"}/louis_gaudreau/')
+    out_dir.mkdir(parents=True, exist_ok=True)
+    df.to_csv(out_dir / f'{file}.csv', index=False)

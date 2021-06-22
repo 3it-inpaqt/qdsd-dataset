@@ -29,6 +29,8 @@ The folder is organised as:
 The data processing is kept minimal to be as close as possible to the reality of experimentation. However, in some case
 the alteration of data was necessary to be adapted to machine learning applications.
 
+![Process flow](doc/process_flow.svg?sanitize=true)
+
 ## Interpolation
 
 It is necessary to have the same constant voltage variation between measurements in every stability diagrams. So we use
@@ -61,7 +63,7 @@ Some unusable original stability diagrams were removed during the cleaning proce
 # Processing Scripts
 
 * __data_cleanup/__: originals => raw_clean  
-  Convert specific file structure to a standard one.
+  Convert the specific file structure to a standard one.
 * __raw_to_images/__: raw_clean => interpolated_csv & interpolated_images  
   Interpolate data to have plottable images ready to be annotated.
 
@@ -71,4 +73,5 @@ Some unusable original stability diagrams were removed during the cleaning proce
 
 # Data contribution
 
-* Louis Gaudreau
+* Louis Gaudreau's research group (https://doi.org/10.1063/1.3258663)
+* Michel Pioro Ladriere research group

@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import List, Tuple
 from zipfile import ZipFile
 
@@ -96,12 +97,14 @@ def load_raw_points(file: IO) -> Tuple[List[float], List[float], List]:
 
 if __name__ == '__main__':
 
+    out_dir = Path('../out/raw_clean/single/michel_pioro_ladriere/')
+    out_dir.mkdir(parents=True, exist_ok=True)
     count = 0
 
     # TODO check why "1779Dev2-20161127_473.dat" is not good
     not_valid = ['1779Dev2-20161127_473.dat']
 
-    with ZipFile('../../data/originals/michel_pioro_ladriere.zip', 'r') as zip_file:
+    with ZipFile('../data/originals/michel_pioro_ladriere.zip', 'r') as zip_file:
         for file_name in zip_file.namelist():
 
             if file_name in not_valid:
@@ -118,7 +121,7 @@ if __name__ == '__main__':
             print(df.describe(percentiles=[.25, .5, .75, .99]))
 
             # Change '.dat' for '.csv'
-            df.to_csv(f'../../out/raw_clean/michel_pioro_ladriere_{file_name[:-4]}.csv', index=False)
+            df.to_csv(out_dir / f'{file_name[:-4]}.csv', index=False)
             count += 1
 
     print(f'{count} raw diagrams converted to csv')
