@@ -1,8 +1,8 @@
 import gzip
 import json
+import zipfile
 from pathlib import Path
 from typing import Iterable, List, Tuple
-from zipfile import ZipFile
 
 from shapely.geometry import LineString, Polygon
 
@@ -10,6 +10,9 @@ from plots import plot_image
 from raw_to_images import load_interpolated_csv
 
 DATA_DIR = Path('data')
+PIXEL_SIZE = 0.0010  # Volt
+SINGLE_DOT = True  # If false take double dot
+RESEARCH_GROUP = 'michel_pioro_ladriere'  # 'louis_gaudreau' or 'michel_pioro_ladriere'
 
 
 def clip(n, smallest, largest):
@@ -112,26 +115,33 @@ def main():
     labels = {obj['External ID']: obj for obj in labels_json}
 
     # Open the zip file and iterate over all csv files
-    with ZipFile(Path(DATA_DIR, 'interpolated_csv.zip'), 'r') as zip_file:
-        for diagram_name in zip_file.namelist():
-            file_basename = Path(diagram_name).stem  # Remove extension
+    zip_path = Path(DATA_DIR, 'interpolated_csv.zip')
+    in_zip_path = Path(f'{PIXEL_SIZE * 1000}mV', 'single' if SINGLE_DOT else 'double', RESEARCH_GROUP)
+    zip_dir = zipfile.Path(zip_path, str(in_zip_path) + '/')
 
-            if f'{file_basename}.png' not in labels:
-                raise RuntimeError(f'No label found for {file_basename}')
+    if not zip_dir.is_dir():
+        raise ValueError(f'Folder "{in_zip_path}" not found in the zip file "{zip_path}"')
 
-            with zip_file.open(diagram_name) as diagram_file:
-                # Load values from CSV file
-                x, y, values = load_interpolated_csv(gzip.open(diagram_file))
+    for diagram_name in zip_dir.iterdir():
+        file_basename = Path(str(diagram_name)).stem  # Remove extension
 
-                current_labels = labels[f'{file_basename}.png']['Label']['objects']
+        if f'{file_basename}.png' not in labels:
+            print(f'No label found for {file_basename}')
+            continue
 
-                # Load annotation and convert the coordinates to volt
-                transition_lines = load_lines_annotations(filter(lambda l: l['title'] == 'line', current_labels), x, y,
-                                                          snap=1)
-                charge_regions = load_charge_annotations(filter(lambda l: l['title'] != 'line', current_labels), x, y,
-                                                         snap=1)
+        with diagram_name.open('r') as diagram_file:
+            # Load values from CSV file
+            x, y, values = load_interpolated_csv(gzip.open(diagram_file))
 
-                plot_image(x, y, values, file_basename, 'nearest', x[1] - x[0], charge_regions, transition_lines)
+            current_labels = labels[f'{file_basename}.png']['Label']['objects']
+
+            # Load annotation and convert the coordinates to volt
+            transition_lines = load_lines_annotations(filter(lambda l: l['title'] == 'line', current_labels), x, y,
+                                                      snap=1)
+            charge_regions = load_charge_annotations(filter(lambda l: l['title'] != 'line', current_labels), x, y,
+                                                     snap=1)
+
+            plot_image(x, y, values, file_basename, 'nearest', x[1] - x[0], charge_regions, transition_lines)
 
 
 if __name__ == '__main__':
