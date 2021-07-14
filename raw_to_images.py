@@ -79,7 +79,7 @@ def save_interpolated_csv(file_path: Path, values, x, y, pixel_size: float) -> N
     file_path.parent.mkdir(parents=True, exist_ok=True)
 
     compact_diagram = np.insert(values, 0, [x[0][0], y[0][0], pixel_size] + [0] * (len(x[0]) - 3), 0)
-    np.savetxt(file_path, compact_diagram, delimiter=',', fmt='%.6f',
+    np.savetxt(file_path, compact_diagram, delimiter=',', fmt='%.6g',
                header='First row: x start (V), y start (V), step (V) / Second row to end: values (V)')
 
 

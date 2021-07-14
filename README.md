@@ -15,7 +15,7 @@ The folder is organised as:
 * __originals/__ - The original data as we received it (before any processing), classed by origin.  
   No data processing applied.
 * __raw_clean.zip__ - Compressed files containing all data, each CSV file is a stability diagram. The CSV have 3
-  columns: `x, y, z`. Where `x` and `y` are the gate tension in V and `z` is the measured tension in V.  
+  columns: `x, y, z`. Where `x` and `y` are the gate tension in V and `z` is the measured electric current in A.  
   No data processing applied.
 * __interpolated_csv.zip__ - Compressed files containing all diagrams as CSV 2D arrays.  
   Interpolation and rounding applied (data loss).
