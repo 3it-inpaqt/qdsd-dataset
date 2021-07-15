@@ -120,7 +120,8 @@ def main():
     zip_dir = zipfile.Path(zip_path, str(in_zip_path) + '/')
 
     if not zip_dir.is_dir():
-        raise ValueError(f'Folder "{in_zip_path}" not found in the zip file "{zip_path}"')
+        raise ValueError(f'Folder "{in_zip_path}" not found in the zip file "{zip_path}".'
+                         f'Check if pixel size and research group exist in this folder.')
 
     for diagram_name in zip_dir.iterdir():
         file_basename = Path(str(diagram_name)).stem  # Remove extension
