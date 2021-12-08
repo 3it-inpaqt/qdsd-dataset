@@ -1,3 +1,4 @@
+import gc
 from pathlib import Path
 from typing import IO, Tuple, Union
 
@@ -105,53 +106,76 @@ def load_interpolated_csv(file_path: Union[IO, str, Path]) -> Tuple:
     return x, y, values
 
 
-def main():
+def main(plot_results: bool = True):
     raw_clean_dir = Path(OUT_DIR, 'raw_clean')
     img_out_dir = Path(OUT_DIR, 'interpolated_img', f'{PIXEL_SIZE * 1000}mV')
     csv_out_dir = Path(OUT_DIR, 'interpolated_csv', f'{PIXEL_SIZE * 1000}mV')
 
     count = 0
+    skipped = 0
 
     for diagram_file in raw_clean_dir.rglob('*.csv'):
         # Plot a specific area of the diagram
         focus_area = None
         # focus_area = (-0.460, -0.440, -0.65, -0.63)
 
+        # Compute out file paths
+        file_basename = diagram_file.stem  # Remove extension
+        current_csv_dir = csv_out_dir / diagram_file.parent.relative_to(raw_clean_dir)  # Keep the file structure
+        current_img_dir = img_out_dir / diagram_file.parent.relative_to(raw_clean_dir)  # Keep the file structure
+        out_csv_file = current_csv_dir / f'{file_basename}.gz'
+        out_img_file = current_img_dir / f'{file_basename}.png'
+
+        if out_csv_file.is_file() and out_csv_file.is_file():
+            skipped += 1
+            continue
+
         # Load data
         diagram = pandas.read_csv(diagram_file)
-        file_basename = diagram_file.stem  # Remove extension
 
-        # Plot raw points
-        plot_raw(diagram, file_basename, focus_area, grid_size=None)
+        if plot_results:
+            # Plot raw points
+            plot_raw(diagram, file_basename, focus_area, grid_size=None)
 
         # Interpolate
         x_i, y_i, pixels = image_interpolation(diagram,
                                                method=INTERPOLATION_METHOD,
                                                step=PIXEL_SIZE,
                                                filter_extreme=False)
+
+        # Save interpolated values
+        current_csv_dir.mkdir(parents=True, exist_ok=True)
+        save_interpolated_csv(out_csv_file, pixels, x_i, y_i, PIXEL_SIZE)
+
+        del pixels  # Explicite remove large data
+        gc.collect()
+
         _, _, pixels_no_extreme = image_interpolation(diagram,
                                                       method=INTERPOLATION_METHOD,
                                                       step=PIXEL_SIZE,
                                                       filter_extreme=True)
 
-        # Plot the image
-        plot_image(x_i, y_i, pixels_no_extreme, file_basename, INTERPOLATION_METHOD, PIXEL_SIZE,
-                   focus_area=focus_area)
+        del diagram  # Explicite remove large data
+        gc.collect()
 
-        # Save interpolated values
-        current_csv_dir = csv_out_dir / diagram_file.parent.relative_to(raw_clean_dir)  # Keep the file structure
-        current_csv_dir.mkdir(parents=True, exist_ok=True)
-        save_interpolated_csv(current_csv_dir / f'{file_basename}.gz', pixels, x_i, y_i, PIXEL_SIZE)
+        if plot_results:
+            # Plot the image
+            plot_image(x_i, y_i, pixels_no_extreme, file_basename, INTERPOLATION_METHOD, PIXEL_SIZE,
+                       focus_area=focus_area)
 
         # Save the interpolated image
-        current_img_dir = img_out_dir / diagram_file.parent.relative_to(raw_clean_dir)  # Keep the file structure
         current_img_dir.mkdir(parents=True, exist_ok=True)
-        save_image(current_img_dir / f'{file_basename}.png', pixels_no_extreme, INTERPOLATION_METHOD, PIXEL_SIZE)
+        save_image(out_img_file, pixels_no_extreme, INTERPOLATION_METHOD, PIXEL_SIZE)
         count += 1
 
+        del pixels_no_extreme  # Explicite remove large data
+        gc.collect()
+
     print(f'{count} raw file(s) interpolated')
+    if skipped > 0:
+        print(f'{skipped} file(s) skipped (already existing)')
 
 
 if __name__ == '__main__':
     # Processing settings at the top of this file
-    main()
+    main(plot_results=True)
