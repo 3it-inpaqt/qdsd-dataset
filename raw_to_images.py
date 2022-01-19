@@ -6,9 +6,10 @@ import numpy as np
 import pandas
 from scipy.interpolate import griddata
 
+from processing_scripts.Peak_detection.peak_detection_ewma import extract_transition
 from plots import plot_image, plot_raw
 
-PIXEL_SIZE = 0.0010  # Volt
+PIXEL_SIZE = 0.0001  # Volt
 INTERPOLATION_METHOD = 'nearest'
 DATA_DIR = Path('data')
 OUT_DIR = Path('out')
@@ -106,23 +107,33 @@ def load_interpolated_csv(file_path: Union[IO, str, Path]) -> Tuple:
 
 
 def main():
-    raw_clean_dir = Path(OUT_DIR, 'raw_clean')
-    img_out_dir = Path(OUT_DIR, 'interpolated_img', f'{PIXEL_SIZE * 1000}mV')
-    csv_out_dir = Path(OUT_DIR, 'interpolated_csv', f'{PIXEL_SIZE * 1000}mV')
+    processed_image = True
+
+    if processed_image is True:
+        processed_raw_dir = Path(OUT_DIR, 'processed')
+        processed_img_out_dir = Path(OUT_DIR, 'processed_interpolated_img', f'{PIXEL_SIZE * 1000}mV')
+        processed_csv_out_dir = Path(OUT_DIR, 'processed_interpolated_csv', f'{PIXEL_SIZE * 1000}mV')
+    else:
+        raw_clean_dir = Path(OUT_DIR, 'raw_clean')
+        img_out_dir = Path(OUT_DIR, 'interpolated_img', f'{PIXEL_SIZE * 1000}mV')
+        csv_out_dir = Path(OUT_DIR, 'interpolated_csv', f'{PIXEL_SIZE * 1000}mV')
 
     count = 0
 
-    for diagram_file in raw_clean_dir.rglob('*.csv'):
+    for diagram_file in processed_raw_dir.rglob('*.csv'):
         # Plot a specific area of the diagram
         focus_area = None
         # focus_area = (-0.460, -0.440, -0.65, -0.63)
 
+        if count > 31:
+            count += 1
+            continue
         # Load data
         diagram = pandas.read_csv(diagram_file)
         file_basename = diagram_file.stem  # Remove extension
 
         # Plot raw points
-        plot_raw(diagram, file_basename, focus_area, grid_size=None)
+        # plot_raw(diagram, file_basename, focus_area, grid_size=None)
 
         # Interpolate
         x_i, y_i, pixels = image_interpolation(diagram,
@@ -135,18 +146,33 @@ def main():
                                                       filter_extreme=True)
 
         # Plot the image
-        plot_image(x_i, y_i, pixels_no_extreme, file_basename, INTERPOLATION_METHOD, PIXEL_SIZE,
-                   focus_area=focus_area)
+        #plot_image(x_i, y_i, pixels_no_extreme, file_basename, INTERPOLATION_METHOD, PIXEL_SIZE,
+        #           focus_area=focus_area)
 
-        # Save interpolated values
-        current_csv_dir = csv_out_dir / diagram_file.parent.relative_to(raw_clean_dir)  # Keep the file structure
-        current_csv_dir.mkdir(parents=True, exist_ok=True)
-        save_interpolated_csv(current_csv_dir / f'{file_basename}.gz', pixels, x_i, y_i, PIXEL_SIZE)
+        if processed_image is True:
+            # Save interpolated values
+            current_csv_dir = processed_csv_out_dir / diagram_file.parent.relative_to(
+                processed_raw_dir)  # Keep the file structure
+            current_csv_dir.mkdir(parents=True, exist_ok=True)
+            save_interpolated_csv(current_csv_dir / f'{file_basename}.gz', pixels, x_i, y_i, PIXEL_SIZE)
 
-        # Save the interpolated image
-        current_img_dir = img_out_dir / diagram_file.parent.relative_to(raw_clean_dir)  # Keep the file structure
-        current_img_dir.mkdir(parents=True, exist_ok=True)
-        save_image(current_img_dir / f'{file_basename}.png', pixels_no_extreme, INTERPOLATION_METHOD, PIXEL_SIZE)
+            # Save the interpolated image
+            current_img_dir = processed_img_out_dir / diagram_file.parent.relative_to(
+                processed_raw_dir)  # Keep the file structure
+            current_img_dir.mkdir(parents=True, exist_ok=True)
+            save_image(current_img_dir / f'{file_basename}.png', pixels, INTERPOLATION_METHOD, PIXEL_SIZE)
+
+        else:
+            # Save interpolated values
+            current_csv_dir = csv_out_dir / diagram_file.parent.relative_to(raw_clean_dir)  # Keep the file structure
+            current_csv_dir.mkdir(parents=True, exist_ok=True)
+            save_interpolated_csv(current_csv_dir / f'{file_basename}.gz', pixels, x_i, y_i, PIXEL_SIZE)
+
+            # Save the interpolated image
+            current_img_dir = img_out_dir / diagram_file.parent.relative_to(raw_clean_dir)  # Keep the file structure
+            current_img_dir.mkdir(parents=True, exist_ok=True)
+            save_image(current_img_dir / f'{file_basename}.png', pixels_no_extreme, INTERPOLATION_METHOD, PIXEL_SIZE)
+
         count += 1
 
     print(f'{count} raw file(s) interpolated')

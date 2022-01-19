@@ -113,9 +113,9 @@ if __name__ == '__main__':
             print(f'---------- {file_name[:-4]} ----------')
             with zip_file.open(file_name, 'r') as file:
                 x, y, values = load_raw_points(file)
-
+            print(len(x), len(y), len(values))
             df = pd.DataFrame({'x': x, 'y': y, 'z': values})
-            plot_raw(df, file_name)
+            #plot_raw(df, file_name)
 
             print(df)
             print(df.describe(percentiles=[.25, .5, .75, .99]))

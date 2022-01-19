@@ -40,7 +40,7 @@ def plot_raw(diagram, image_name: str, focus_area: Optional[Tuple] = None, grid_
     if focus_area:
         plt.axis(focus_area)
 
-    plt.show(dpi=200)
+    plt.show()
 
 
 def plot_image(x_i, y_i, pixels, image_name: str, interpolation_method: str, pixel_size: float,
