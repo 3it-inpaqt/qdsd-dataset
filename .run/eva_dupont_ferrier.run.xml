@@ -1,16 +1,15 @@
 <component name="ProjectRunConfigurationManager">
-    <configuration default="false" name="raw_to_images" type="PythonConfigurationType" factoryName="Python"
-                   nameIsGenerated="true">
+    <configuration default="false" name="cleanup eva" type="PythonConfigurationType" factoryName="Python">
         <module name="qdsd-dataset"/>
         <option name="INTERPRETER_OPTIONS" value=""/>
         <option name="PARENT_ENVS" value="true"/>
         <option name="SDK_HOME" value=""/>
-        <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$"/>
+        <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/data_cleanup"/>
         <option name="IS_MODULE_SDK" value="true"/>
         <option name="ADD_CONTENT_ROOTS" value="true"/>
         <option name="ADD_SOURCE_ROOTS" value="true"/>
         <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py"/>
-        <option name="SCRIPT_NAME" value="$PROJECT_DIR$/raw_to_images.py"/>
+        <option name="SCRIPT_NAME" value="$PROJECT_DIR$/data_cleanup/eva_dupont_ferrier.py"/>
         <option name="PARAMETERS" value=""/>
         <option name="SHOW_COMMAND_LINE" value="false"/>
         <option name="EMULATE_TERMINAL" value="true"/>
