@@ -110,18 +110,36 @@ if __name__ == '__main__':
             if file_name in not_valid:
                 continue
 
-            print(f'---------- {file_name[:-4]} ----------')
+            name = file_name[:-4]
+            print(f'---------- {name} ----------')
             with zip_file.open(file_name, 'r') as file:
                 x, y, values = load_raw_points(file)
 
             df = pd.DataFrame({'x': x, 'y': y, 'z': values})
-            plot_raw(df, file_name)
+
+            # Cut this one in half because it's quite big and create out of distribution issue with cross-validation
+            if file_name == '1779Dev2-20161127_145.dat':
+                mean_y = (df['y'].max() - df['y'].min()) / 2
+                df2 = df[df['y'] > mean_y]
+                df = df[df['y'] <= mean_y]
+
+                plot_raw(df2, name + '-part1')
+
+                print(df2)
+                print(df2.describe(percentiles=[.25, .5, .75, .99]))
+
+                # Change '.dat' for '.csv'
+                df2.to_csv(out_dir / f'{name}-part1.csv', index=False)
+
+                name += '-part2'  # rename the following one
+
+            plot_raw(df, name)
 
             print(df)
             print(df.describe(percentiles=[.25, .5, .75, .99]))
 
             # Change '.dat' for '.csv'
-            df.to_csv(out_dir / f'{file_name[:-4]}.csv', index=False)
+            df.to_csv(out_dir / f'{name}.csv', index=False)
             count += 1
 
     print(f'{count} raw diagrams converted to csv')

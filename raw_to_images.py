@@ -38,7 +38,7 @@ def image_interpolation(diagram, step=0.001, method='nearest', filter_extreme=Fa
     y_i = np.arange(np.min(diagram.y) + step, np.max(diagram.y), step)
     x_i, y_i = np.meshgrid(x_i, y_i)
 
-    # Use nearest interpolation method.
+    # Use "nearest" interpolation method.
     grid = griddata((diagram.x, diagram.y), diagram.z, (x_i, y_i), method=method)
 
     # Flip the grid to keep the same direction (I don't know why it's inverted during the interpolation)
