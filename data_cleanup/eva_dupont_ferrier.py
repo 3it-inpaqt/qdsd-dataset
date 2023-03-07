@@ -37,11 +37,9 @@ def load_raw_points(file: IO) -> Tuple[List[float], List[float], List]:
 
 
 if __name__ == '__main__':
-    out_dir = Path('../out/raw_clean/single/eva_dupont_ferrier_gen1_dis1/')
-    out_dir.mkdir(parents=True, exist_ok=True)
     count = 0
-
-    with ZipFile('../data/originals/eva_dupont_ferrier_gen1_dis1.zip', 'r') as zip_file:
+    is_double_dot = ['20220618-121944_Map_B4_D3_highres', '20220702-095838_Map_D3_D2', '20220703-143147_Map_D3_D2']
+    with ZipFile('../data/originals/eva_dupont_ferrier_gen3.zip', 'r') as zip_file:
         for file_name in zip_file.namelist():
             print(f'---------- {file_name[:-4]} ----------')
             with zip_file.open(file_name, 'r') as file:
@@ -54,6 +52,9 @@ if __name__ == '__main__':
             print(df.describe(percentiles=[.25, .5, .75, .99]))
 
             # Change '.dat' for '.csv'
+            out_dir = Path(
+                f'../out/raw_clean/{"double" if (file_name[:-4] in is_double_dot) else "single"}/eva_dupont_ferrier_gen3')
+            out_dir.mkdir(parents=True, exist_ok=True)
             df.to_csv(out_dir / f'{file_name[:-4]}.csv', index=False)
             count += 1
 
