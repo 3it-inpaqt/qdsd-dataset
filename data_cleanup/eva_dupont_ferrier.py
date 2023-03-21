@@ -32,7 +32,7 @@ def load_raw_points(file: IO) -> Tuple[List[float], List[float], List]:
     data = np.loadtxt(file)
     x = data[:, 0]
     y = data[:, 2]
-    z = data[:, 4] / amplification
+    z = data[:, 4]
     return x, y, z
 
 
