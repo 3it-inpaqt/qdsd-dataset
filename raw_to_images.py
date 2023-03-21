@@ -1,4 +1,5 @@
 import gc
+import os
 from pathlib import Path
 from typing import IO, Tuple, Union
 
@@ -7,12 +8,14 @@ import numpy as np
 import pandas
 from scipy.interpolate import griddata
 
+from label import label
 from plots import plot_image, plot_raw
+from settings import settings
 
-PIXEL_SIZE = 0.0010  # Volt
-INTERPOLATION_METHOD = 'nearest'
-DATA_DIR = Path('data')
-OUT_DIR = Path('out')
+PIXEL_SIZE = settings.pixel_size  # Volt
+INTERPOLATION_METHOD = settings.interpolation_method
+DATA_DIR = Path(settings.data_dir)
+OUT_DIR = Path(settings.out_dir)
 
 
 def image_interpolation(diagram, step=0.001, method='nearest', filter_extreme=False) -> Tuple:
@@ -46,25 +49,62 @@ def image_interpolation(diagram, step=0.001, method='nearest', filter_extreme=Fa
     return x_i, y_i, grid
 
 
-def save_image(file_path: Path, pixels, interpolation_method: str, pixel_size: float) -> None:
+def save_image(file_path: Path, file_basename: str, pixels, interpolation_method: str, pixel_size: float,
+               filter_extreme=True) -> None:
     """
     Save interpolated image in file.
 
     :param file_path: The path where to save the image
+    :param file_basename: File name
     :param pixels: The list of pixels as a numpy array
     :param interpolation_method: The pixels interpolation method, used for meta data
     :param pixel_size: The size of pixels, in voltage, used for meta data
+    :param filter_extreme: Allow or not to filter the derived image
     """
 
     # Create directories if necessary
     file_path.parent.mkdir(parents=True, exist_ok=True)
 
-    # Save interpolated image as file
-    plt.imsave(file_path, pixels, cmap='gray', metadata={
+    if not os.path.exists(file_path / 'raw/'):
+        os.makedirs(file_path / 'raw/')
+    # Save interpolated raw image as file
+    plt.imsave(file_path / 'raw' / f'{file_basename}.png', pixels, cmap='Greys', metadata={
         'interpolation_method': interpolation_method,
         'pixel_size': f'{pixel_size:.6f}V',
     })
 
+    pixels_d = np.gradient(pixels)
+
+    if filter_extreme:
+        # Limit pixels values between the 1st and 99th percentile to avoid visual issues with extreme values
+        for pixel_d in pixels_d:
+            percentile1 = np.percentile(pixel_d, 1)
+            percentile99 = np.percentile(pixel_d, 99)
+            pixel_d[np.where(pixel_d < percentile1)] = percentile1
+            pixel_d[np.where(pixel_d > percentile99)] = percentile99
+
+    # Save interpolated gradient by x image as file
+
+    if not os.path.exists(file_path / 'DyDx/'):
+        os.makedirs(file_path / 'DyDx/')
+
+    plt.imsave(file_path / 'DyDx' / f'{file_basename}_DyDx.png', pixels_d[0], cmap='Blues', metadata={
+        'interpolation_method': interpolation_method,
+        'pixel_size': f'{pixel_size:.6f}V',
+        'derivative_method': 'numpy.gradient',
+        'type_of_derived': 'by x',
+    })
+
+    if not os.path.exists(file_path / 'DxDy/'):
+        os.makedirs(file_path / 'DxDy/')
+
+    # Save interpolated gradient by x image as file
+    plt.imsave(file_path / 'DxDy' / f'{file_basename}_DxDy.png', pixels_d[1], cmap='Greens', metadata={
+        'interpolation_method': interpolation_method,
+        'pixel_size': f'{pixel_size:.6f}V',
+        'derivative_method': 'numpy.gradient',
+        'type_of_derived': 'by y',
+    })
 
 def save_interpolated_csv(file_path: Path, values, x, y, pixel_size: float) -> None:
     """
@@ -124,7 +164,7 @@ def main(plot_results: bool = True):
         current_csv_dir = csv_out_dir / diagram_file.parent.relative_to(raw_clean_dir)  # Keep the file structure
         current_img_dir = img_out_dir / diagram_file.parent.relative_to(raw_clean_dir)  # Keep the file structure
         out_csv_file = current_csv_dir / f'{file_basename}.gz'
-        out_img_file = current_img_dir / f'{file_basename}.png'
+        out_img_file = current_img_dir
 
         if out_csv_file.is_file() and out_csv_file.is_file():
             skipped += 1
@@ -165,7 +205,12 @@ def main(plot_results: bool = True):
 
         # Save the interpolated image
         current_img_dir.mkdir(parents=True, exist_ok=True)
-        save_image(out_img_file, pixels_no_extreme, INTERPOLATION_METHOD, PIXEL_SIZE)
+        save_image(out_img_file, file_basename, pixels_no_extreme, INTERPOLATION_METHOD, PIXEL_SIZE)
+
+        # Upload image into Labelbox
+        if settings.autolabel:
+            label.load_img_into_labelbox(str(out_img_file), file_basename)
+
         count += 1
 
         del pixels_no_extreme  # Explicite remove large data
