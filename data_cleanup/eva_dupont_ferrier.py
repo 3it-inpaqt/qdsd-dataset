@@ -39,7 +39,7 @@ def load_raw_points(file: IO) -> Tuple[List[float], List[float], List]:
 if __name__ == '__main__':
     count = 0
     is_double_dot = ['20220618-121944_Map_B4_D3_highres', '20220702-095838_Map_D3_D2', '20220703-143147_Map_D3_D2']
-    with ZipFile('../data/originals/eva_dupont_ferrier_gen3.zip', 'r') as zip_file:
+    with ZipFile('../data/originals/eva_dupont_ferrier.zip', 'r') as zip_file:
         for file_name in zip_file.namelist():
             print(f'---------- {file_name[:-4]} ----------')
             with zip_file.open(file_name, 'r') as file:
