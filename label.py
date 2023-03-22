@@ -66,21 +66,21 @@ class Label():
         dataset_tmp = self.client.create_dataset(name='Dataset_tmp',
                                                  description='Dataset tmp create to add layer in a define dataset')
 
-        # Attachement for the derivate in X
-
-        datarow_tmp = dataset_tmp.create_data_row(external_id=file_basename + '_DyDx.png',
-                                                  row_data=file_path + '/DyDx/' + file_basename + '_DyDx.png')
-        datarow_link = self.get_data_row_link(file_basename + '_DyDx.png', dataset_tmp)
-        data_row.create_attachment(attachment_type="IMAGE_OVERLAY", attachment_value=datarow_link,
-                                   attachment_name="DxDy")
-
         # Attachement for the derivate in Y
 
-        datarow_tmp = dataset_tmp.create_data_row(external_id=file_basename + '_DxDy.png',
-                                                  row_data=file_path + '/DxDy/' + file_basename + '_DxDy.png')
-        datarow_link = self.get_data_row_link(file_basename + '_DxDy.png', dataset_tmp)
+        datarow_tmp = dataset_tmp.create_data_row(external_id=file_basename + '_DzDy.png',
+                                                  row_data=file_path + '/DzDy/' + file_basename + '_DzDy.png')
+        datarow_link = self.get_data_row_link(file_basename + '_DzDy.png', dataset_tmp)
         data_row.create_attachment(attachment_type="IMAGE_OVERLAY", attachment_value=datarow_link,
-                                   attachment_name="DxDy")
+                                   attachment_name="DzDy")
+
+        # Attachement for the derivate in X
+
+        datarow_tmp = dataset_tmp.create_data_row(external_id=file_basename + '_DzDx.png',
+                                                  row_data=file_path + '/DzDx/' + file_basename + '_DzDx.png')
+        datarow_link = self.get_data_row_link(file_basename + '_DzDx.png', dataset_tmp)
+        data_row.create_attachment(attachment_type="IMAGE_OVERLAY", attachment_value=datarow_link,
+                                   attachment_name="DzDx")
 
         self.delete_dataset(dataset_tmp)
         return

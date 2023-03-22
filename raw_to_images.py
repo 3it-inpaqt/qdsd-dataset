@@ -85,21 +85,21 @@ def save_image(file_path: Path, file_basename: str, pixels, interpolation_method
 
     # Save interpolated gradient by x image as file
 
-    if not os.path.exists(file_path / 'DyDx/'):
-        os.makedirs(file_path / 'DyDx/')
+    if not os.path.exists(file_path / 'DzDx/'):
+        os.makedirs(file_path / 'DzDx/')
 
-    plt.imsave(file_path / 'DyDx' / f'{file_basename}_DyDx.png', pixels_d[0], cmap='Blues', metadata={
+    plt.imsave(file_path / 'DzDx' / f'{file_basename}_DzDx.png', pixels_d[1], cmap='Greens', metadata={
         'interpolation_method': interpolation_method,
         'pixel_size': f'{pixel_size:.6f}V',
         'derivative_method': 'numpy.gradient',
         'type_of_derived': 'by x',
     })
 
-    if not os.path.exists(file_path / 'DxDy/'):
-        os.makedirs(file_path / 'DxDy/')
+    if not os.path.exists(file_path / 'DzDy/'):
+        os.makedirs(file_path / 'DzDy/')
 
     # Save interpolated gradient by x image as file
-    plt.imsave(file_path / 'DxDy' / f'{file_basename}_DxDy.png', pixels_d[1], cmap='Greens', metadata={
+    plt.imsave(file_path / 'DzDy' / f'{file_basename}_DzDy.png', pixels_d[0], cmap='Blues', metadata={
         'interpolation_method': interpolation_method,
         'pixel_size': f'{pixel_size:.6f}V',
         'derivative_method': 'numpy.gradient',

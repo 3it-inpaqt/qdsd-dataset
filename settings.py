@@ -25,7 +25,7 @@ class Settings:
     API_KEY: str = ''
 
     # Enable or not to upload into labelbox
-    autolabel: bool = True
+    autolabel: bool = False
 
     # Specified in which dataset the image is upload
     # If emty, a new dataset is create
