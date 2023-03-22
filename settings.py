@@ -2,6 +2,7 @@ import argparse
 from dataclasses import asdict, dataclass
 
 import configargparse
+import labelbox as lb
 from numpy.distutils.misc_util import is_sequence
 
 
@@ -19,14 +20,6 @@ class Settings:
     # ==================================================================================================================
     # ==================================================== General =====================================================
     # ==================================================================================================================
-
-    # Name of the run to save the result ('tmp' for temporary files).
-    # If empty or None thing is saved.
-    run_name: str = ''
-
-    # The seed to use for all random number generator during this run.
-    # Forcing reproducibility could lead to a performance lost.
-    seed: int = 42
 
     # API_Key need for logging in labelbox
     API_KEY: str = ''
@@ -53,26 +46,22 @@ class Settings:
     # out_dir
     out_dir: str = 'out'
 
-    def is_named_run(self) -> bool:
-        """ Return True only if the name of the run is set (could be a temporary name). """
-        return len(self.run_name) > 0
+    def check_API_KEY(self):
 
-    def is_unnamed_run(self) -> bool:
-        """ Return True only if the name of the run is NOT set. """
-        return len(self.run_name) == 0
-
-    def is_temporary_run(self) -> bool:
-        """ Return True only if the name of the run is set and is temporary name. """
-        return self.run_name == 'tmp'
-
-    def is_saved_run(self) -> bool:
-        """ Return True only if the name of the run is set and is NOT temporary name. """
-        return self.is_named_run() and not self.is_temporary_run()
+        Key = self.API_KEY
+        try:
+            lb.Client(api_key=Key)
+        except:
+            print(f'Error with the API_KEY, non existant or invalid')
 
     def validate(self):
         """
         Validate settings.
         """
+
+        # Check the API_KEY for LabelBox
+
+        self.check_API_KEY()
 
     def __init__(self):
         """
@@ -146,7 +135,7 @@ class Settings:
         :param value: The value of the attribut
         """
         if name not in self.__dict__ or self.__dict__[name] != value:
-            logger.debug(f'Setting "{name}" changed from "{getattr(self, name)}" to "{value}".')
+            print(f'Setting "{name}" changed from "{getattr(self, name)}" to "{value}".')
             self.__dict__[name] = value
 
     def __delattr__(self, name):
