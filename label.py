@@ -126,7 +126,7 @@ class Label():
 
     def __int__(self):
 
-        Key = settings.API_KEY
+        Key = settings.api_key
         self.client = lb.Client(api_key=Key)
 
         return

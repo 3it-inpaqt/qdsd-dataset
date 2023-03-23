@@ -2,7 +2,6 @@ import argparse
 from dataclasses import asdict, dataclass
 
 import configargparse
-import labelbox as lb
 from numpy.distutils.misc_util import is_sequence
 
 
@@ -21,11 +20,11 @@ class Settings:
     # ==================================================== General =====================================================
     # ==================================================================================================================
 
-    # API_Key need for logging in labelbox
-    API_KEY: str = ''
+    # API key required for logging in labelbox
+    api_key: str = ''
 
     # Enable or not to upload into labelbox
-    autolabel: bool = False
+    upload_images: bool = False
 
     # Specified in which dataset the image is upload
     # If empty, a new dataset is created
@@ -34,41 +33,31 @@ class Settings:
     # New dataset name
     dataset_name: str = 'Default'
 
-    # pixel_size
-    pixel_size: float = 0.0010  # Volt
+    # The pixel size in volt, for the interpolation
+    pixel_size: float = 0.0010
 
-    # interpolation_method
+    # The interpolation method
+    # See https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.griddata.html
     interpolation_method: str = 'nearest'
 
-    # Data_dir
+    # The relative path to the data directory, from the working directory
     data_dir: str = 'data'
 
-    # out_dir
+    # The relative path to the output directory, from the working directory
     out_dir: str = 'out'
 
-    # If True, the extreme data points are removed from the generated images. But keep them in the csv files.
+    # If True, the extreme data points are removed from the generated images. But kept in the csv files.
     # The data is capped to the first and last percentile.
     filter_extreme: bool = True
 
     # If True, plot the diagrams as images at different steps of the processing.
     plot_results: bool = True
 
-    def check_API_KEY(self):
-
-        Key = self.API_KEY
-        try:
-            lb.Client(api_key=Key)
-        except:
-            print(f'Error with the API_KEY, non existant or invalid')
-
     def validate(self):
         """
         Validate settings.
         """
-
-        # Check the API_KEY for LabelBox
-
-        self.check_API_KEY()
+        pass
 
     def __init__(self):
         """

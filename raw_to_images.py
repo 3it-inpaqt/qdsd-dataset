@@ -199,7 +199,7 @@ def main():
                     settings.pixel_size)
 
         # Upload image into Labelbox
-        if settings.autolabel:
+        if settings.upload_images:
             label.load_img_into_labelbox(current_img_dir, file_basename)
 
         count += 1
@@ -213,5 +213,8 @@ def main():
 
 
 if __name__ == '__main__':
+    # Show the current settings
+    print(settings)
+
     # Processing settings at the top of this file
     main()
