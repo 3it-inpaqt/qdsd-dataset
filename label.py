@@ -54,7 +54,7 @@ class Label():
         """
         Attached a layer on a data
 
-        :file_path: The path where to save the image
+        :file_dir: The path where to save the image
         :file_basename: File name
         :param data_row: the image in LabelBox
         :return: attached 2 layers on the image (raw, dy/dx, dx/dy)
@@ -85,10 +85,11 @@ class Label():
         self.delete_dataset(dataset_tmp)
         return
 
-    def load_img_into_labelbox(self, file_path: str, file_basename: str):
+    def load_img_into_labelbox(self, file_dir: Path, file_basename: str):
         """
         Upload a image with 2 attachement in Labelbox
 
+        :param file_dir:
         :param out_img_file:
         :param file_basename:
         return: Upload a image with 2 attachement in Labelbox
@@ -117,9 +118,9 @@ class Label():
                 return
 
         data_row = dataset.create_data_row(external_id=file_basename + '.png',
-                                           row_data=file_path + '/raw/' + file_basename + '.png')
+                                           row_data=file_dir + '/raw/' + file_basename + '.png')
 
-        self.attachement_layer(file_path, file_basename, data_row)
+        self.attachement_layer(file_dir, file_basename, data_row)
 
         return
 

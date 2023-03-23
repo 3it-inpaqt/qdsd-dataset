@@ -28,7 +28,7 @@ class Settings:
     autolabel: bool = False
 
     # Specified in which dataset the image is upload
-    # If emty, a new dataset is create
+    # If empty, a new dataset is created
     dataset_link: str = ''
 
     # New dataset name
@@ -45,6 +45,13 @@ class Settings:
 
     # out_dir
     out_dir: str = 'out'
+
+    # If True, the extreme data points are removed from the generated images. But keep them in the csv files.
+    # The data is capped to the first and last percentile.
+    filter_extreme: bool = True
+
+    # If True, plot the diagrams as images at different steps of the processing.
+    plot_results: bool = True
 
     def check_API_KEY(self):
 

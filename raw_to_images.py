@@ -1,5 +1,4 @@
 import gc
-import os
 from pathlib import Path
 from typing import IO, Tuple, Union
 
@@ -12,8 +11,6 @@ from label import label
 from plots import plot_image, plot_raw
 from settings import settings
 
-PIXEL_SIZE = settings.pixel_size  # Volt
-INTERPOLATION_METHOD = settings.interpolation_method
 DATA_DIR = Path(settings.data_dir)
 OUT_DIR = Path(settings.out_dir)
 
@@ -49,62 +46,58 @@ def image_interpolation(diagram, step=0.001, method='nearest', filter_extreme=Fa
     return x_i, y_i, grid
 
 
-def save_image(file_path: Path, file_basename: str, pixels, interpolation_method: str, pixel_size: float,
-               filter_extreme=True) -> None:
+def save_images(file_dir: Path, file_basename: str, pixels, interpolation_method: str, pixel_size: float,
+                filter_extreme=True) -> None:
     """
-    Save interpolated image in file.
+    Save interpolated image in 3 versions:
+        * Pixels color represent the normalized current value
+        * Pixels color represent the derivative in respect to the x-axis
+        * Pixels color represent the derivative in respect to the y-axis
 
-    :param file_path: The path where to save the image
-    :param file_basename: File name
+    :param file_dir: The path to the directory where to save the image
+    :param file_basename: The name of the image without extension
     :param pixels: The list of pixels as a numpy array
-    :param interpolation_method: The pixels interpolation method, used for meta data
-    :param pixel_size: The size of pixels, in voltage, used for meta data
-    :param filter_extreme: Allow or not to filter the derived image
+    :param interpolation_method: The pixels interpolation method, used for metadata
+    :param pixel_size: The size of pixels, in voltage, used for metadata
+    :param filter_extreme: Allow or not to filter the derived images
     """
 
     # Create directories if necessary
-    file_path.parent.mkdir(parents=True, exist_ok=True)
+    file_dir.mkdir(parents=True, exist_ok=True)
 
-    if not os.path.exists(file_path / 'raw/'):
-        os.makedirs(file_path / 'raw/')
     # Save interpolated raw image as file
-    plt.imsave(file_path / 'raw' / f'{file_basename}.png', pixels, cmap='Greys', metadata={
+    plt.imsave(file_dir / f'{file_basename}.png', pixels, cmap='Greys', metadata={
         'interpolation_method': interpolation_method,
         'pixel_size': f'{pixel_size:.6f}V',
     })
 
-    pixels_d = np.gradient(pixels)
+    # Compute the gradient with respect to each dimension
+    pixels_gradient = np.gradient(pixels)
 
     if filter_extreme:
         # Limit pixels values between the 1st and 99th percentile to avoid visual issues with extreme values
-        for pixel_d in pixels_d:
+        for pixel_d in pixels_gradient:
             percentile1 = np.percentile(pixel_d, 1)
             percentile99 = np.percentile(pixel_d, 99)
             pixel_d[np.where(pixel_d < percentile1)] = percentile1
             pixel_d[np.where(pixel_d > percentile99)] = percentile99
 
     # Save interpolated gradient by x image as file
-
-    if not os.path.exists(file_path / 'DzDx/'):
-        os.makedirs(file_path / 'DzDx/')
-
-    plt.imsave(file_path / 'DzDx' / f'{file_basename}_DzDx.png', pixels_d[1], cmap='Greens', metadata={
+    plt.imsave(file_dir / f'{file_basename}_DzDx.png', pixels_gradient[1], cmap='Greens', metadata={
         'interpolation_method': interpolation_method,
         'pixel_size': f'{pixel_size:.6f}V',
         'derivative_method': 'numpy.gradient',
         'type_of_derived': 'by x',
     })
 
-    if not os.path.exists(file_path / 'DzDy/'):
-        os.makedirs(file_path / 'DzDy/')
-
-    # Save interpolated gradient by x image as file
-    plt.imsave(file_path / 'DzDy' / f'{file_basename}_DzDy.png', pixels_d[0], cmap='Blues', metadata={
+    # Save interpolated gradient by y image as file
+    plt.imsave(file_dir / f'{file_basename}_DzDy.png', pixels_gradient[0], cmap='Blues', metadata={
         'interpolation_method': interpolation_method,
         'pixel_size': f'{pixel_size:.6f}V',
         'derivative_method': 'numpy.gradient',
         'type_of_derived': 'by y',
     })
+
 
 def save_interpolated_csv(file_path: Path, values, x, y, pixel_size: float) -> None:
     """
@@ -146,10 +139,10 @@ def load_interpolated_csv(file_path: Union[IO, str, Path]) -> Tuple:
     return x, y, values
 
 
-def main(plot_results: bool = True):
+def main():
     raw_clean_dir = Path(OUT_DIR, 'raw_clean')
-    img_out_dir = Path(OUT_DIR, 'interpolated_img', f'{PIXEL_SIZE * 1000}mV')
-    csv_out_dir = Path(OUT_DIR, 'interpolated_csv', f'{PIXEL_SIZE * 1000}mV')
+    img_out_dir = Path(OUT_DIR, 'interpolated_img', f'{settings.pixel_size * 1000}mV')
+    csv_out_dir = Path(OUT_DIR, 'interpolated_csv', f'{settings.pixel_size * 1000}mV')
 
     count = 0
     skipped = 0
@@ -164,56 +157,54 @@ def main(plot_results: bool = True):
         current_csv_dir = csv_out_dir / diagram_file.parent.relative_to(raw_clean_dir)  # Keep the file structure
         current_img_dir = img_out_dir / diagram_file.parent.relative_to(raw_clean_dir)  # Keep the file structure
         out_csv_file = current_csv_dir / f'{file_basename}.gz'
-        out_img_file = current_img_dir
 
-        if out_csv_file.is_file() and out_csv_file.is_file():
+        # If the csv file exist, skip everything (no image created)
+        if out_csv_file.is_file():
             skipped += 1
             continue
 
         # Load data
         diagram = pandas.read_csv(diagram_file)
 
-        if plot_results:
+        if settings.plot_results:
             # Plot raw points
             plot_raw(diagram, file_basename, focus_area, grid_size=None)
 
         # Interpolate
         x_i, y_i, pixels = image_interpolation(diagram,
-                                               method=INTERPOLATION_METHOD,
-                                               step=PIXEL_SIZE,
+                                               method=settings.interpolation_method,
+                                               step=settings.pixel_size,
                                                filter_extreme=False)
 
         # Save interpolated values
         current_csv_dir.mkdir(parents=True, exist_ok=True)
-        save_interpolated_csv(out_csv_file, pixels, x_i, y_i, PIXEL_SIZE)
+        save_interpolated_csv(out_csv_file, pixels, x_i, y_i, settings.pixel_size)
 
-        del pixels  # Explicite remove large data
-        gc.collect()
-
-        _, _, pixels_no_extreme = image_interpolation(diagram,
-                                                      method=INTERPOLATION_METHOD,
-                                                      step=PIXEL_SIZE,
-                                                      filter_extreme=True)
+        if settings.filter_extreme:
+            _, _, pixels = image_interpolation(diagram,
+                                               method=settings.interpolation_method,
+                                               step=settings.pixel_size,
+                                               filter_extreme=True)
 
         del diagram  # Explicite remove large data
         gc.collect()
 
-        if plot_results:
+        if settings.plot_results:
             # Plot the image
-            plot_image(x_i, y_i, pixels_no_extreme, file_basename, INTERPOLATION_METHOD, PIXEL_SIZE,
+            plot_image(x_i, y_i, pixels, file_basename, settings.interpolation_method, settings.pixel_size,
                        focus_area=focus_area)
 
-        # Save the interpolated image
-        current_img_dir.mkdir(parents=True, exist_ok=True)
-        save_image(out_img_file, file_basename, pixels_no_extreme, INTERPOLATION_METHOD, PIXEL_SIZE)
+        # Save the interpolated image and derived images
+        save_images(current_img_dir, file_basename, pixels, settings.interpolation_method,
+                    settings.pixel_size)
 
         # Upload image into Labelbox
         if settings.autolabel:
-            label.load_img_into_labelbox(str(out_img_file), file_basename)
+            label.load_img_into_labelbox(current_img_dir, file_basename)
 
         count += 1
 
-        del pixels_no_extreme  # Explicite remove large data
+        del pixels  # Explicite remove large data
         gc.collect()
 
     print(f'{count} raw file(s) interpolated')
@@ -223,4 +214,4 @@ def main(plot_results: bool = True):
 
 if __name__ == '__main__':
     # Processing settings at the top of this file
-    main(plot_results=True)
+    main()
