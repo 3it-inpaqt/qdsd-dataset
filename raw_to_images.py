@@ -7,7 +7,7 @@ import numpy as np
 import pandas
 from scipy.interpolate import griddata
 
-from label import label
+from dataset_label import DatasetLabel
 from plots import plot_image, plot_raw
 from settings import settings
 
@@ -75,7 +75,7 @@ def save_images(file_dir: Path, file_basename: str, pixels, interpolation_method
     pixels_gradient = np.gradient(pixels)
 
     if filter_extreme:
-        # Limit pixels values between the 1st and 99th percentile to avoid visual issues with extreme values
+        # Limit pixel values between the 1st and 99th percentile to avoid visual issues with extreme values
         for pixel_d in pixels_gradient:
             percentile1 = np.percentile(pixel_d, 1)
             percentile99 = np.percentile(pixel_d, 99)
@@ -140,6 +140,7 @@ def load_interpolated_csv(file_path: Union[IO, str, Path]) -> Tuple:
 
 
 def main():
+    label = DatasetLabel(settings.api_key) if settings.upload_images else None
     raw_clean_dir = Path(OUT_DIR, 'raw_clean')
     img_out_dir = Path(OUT_DIR, 'interpolated_img', f'{settings.pixel_size * 1000}mV')
     csv_out_dir = Path(OUT_DIR, 'interpolated_csv', f'{settings.pixel_size * 1000}mV')
@@ -158,7 +159,7 @@ def main():
         current_img_dir = img_out_dir / diagram_file.parent.relative_to(raw_clean_dir)  # Keep the file structure
         out_csv_file = current_csv_dir / f'{file_basename}.gz'
 
-        # If the csv file exist, skip everything (no image created)
+        # If the csv file exists, skip everything (no image created)
         if out_csv_file.is_file():
             skipped += 1
             continue

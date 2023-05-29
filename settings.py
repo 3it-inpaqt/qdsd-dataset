@@ -16,10 +16,6 @@ class Settings:
         - arguments of the command line (with "--" in front)
     """
 
-    # ==================================================================================================================
-    # ==================================================== General =====================================================
-    # ==================================================================================================================
-
     # API key required for logging in labelbox
     api_key: str = ''
 
@@ -27,10 +23,10 @@ class Settings:
     upload_images: bool = False
 
     # Specified in which dataset the image is upload
-    # If empty, a new dataset is created
-    dataset_link: str = ''
+    # If empty, we will try to fetch the dataset with the name
+    dataset_id: str = ''
 
-    # New dataset name
+    # Dataset name for new dataset or to fetch an existing one
     dataset_name: str = 'Default'
 
     # The pixel size in volt, for the interpolation
@@ -52,12 +48,6 @@ class Settings:
 
     # If True, plot the diagrams as images at different steps of the processing.
     plot_results: bool = True
-
-    def validate(self):
-        """
-        Validate settings.
-        """
-        pass
 
     def __init__(self):
         """
@@ -121,8 +111,6 @@ class Settings:
                 # Directly set the value to bypass the "__setattr__" function
                 self.__dict__[name] = value
 
-        self.validate()
-
     def __setattr__(self, name, value) -> None:
         """
         Set an attribute and valide the new value.
@@ -142,7 +130,8 @@ class Settings:
         :return: Human readable description of the settings.
         """
         return 'Settings:\n\t' + \
-            '\n\t'.join([f'{name}: {str(value)}' for name, value in asdict(self).items()])
+            '\n\t'.join(
+                [f'{name}: {"*****" if name == "api_key" else str(value)}' for name, value in asdict(self).items()])
 
 
 # Singleton setting object
