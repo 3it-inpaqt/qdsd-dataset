@@ -5,7 +5,7 @@ Dataset of quantum dots stability diagrams for machine learning application.
 # Download data
 
 Before public release, the data are available
-in [this private Teams folder](https://usherbrooke.sharepoint.com/:f:/r/sites/UdeS-UW-Memristor-basedMLforQuantumTechs/Documents%20partages/General/Datasets/QDSD?csf=1&web=1&e=YtBFnn)
+in [this private Teams folder](https://usherbrooke.sharepoint.com/:f:/r/sites/GroupeNano/Documents%20partages/Dataset%20Machine%20Learning/QDSD?csf=1&web=1&e=NyI7i5)
 .
 
 You need download this folder and unzip in into a `data` folder at the root of this project.
