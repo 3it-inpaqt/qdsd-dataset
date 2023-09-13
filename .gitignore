@@ -1,5 +1,6 @@
 /data
 /out
+settings.yaml
 
 # Created by https://www.toptal.com/developers/gitignore/api/python,intellij+all
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,intellij+all
