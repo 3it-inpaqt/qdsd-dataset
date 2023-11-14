@@ -1,10 +1,9 @@
 from pathlib import Path
-from typing import List, Tuple
+from typing import List, Tuple, IO
 from zipfile import ZipFile
 
 import numpy as np
 import pandas as pd
-from typing.io import IO
 
 from raw_to_images import plot_raw
 
@@ -97,7 +96,7 @@ def load_raw_points(file: IO) -> Tuple[List[float], List[float], List]:
 
 if __name__ == '__main__':
 
-    out_dir = Path('../out/raw_clean/single/michel_pioro_ladriere/')
+    out_dir = Path('../out/raw_clean/michel_pioro_ladriere/')
     out_dir.mkdir(parents=True, exist_ok=True)
     count = 0
 
