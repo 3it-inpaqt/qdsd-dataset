@@ -1,64 +1,49 @@
-# Quantum Dots Stability Diagrams (QDSD) dataset
+# Quantum Dots Stability Diagrams Dataset
 
-Dataset of quantum dots stability diagrams for machine learning application.
+Dataset of Quantum Dots Stability Diagrams (QDSD) for machine learning application.
+This dataset is used for offline [quantum dot autotuning](https://github.com/3it-inpaqt/dot-calibration-v2).
 
 # Download data
 
-Before public release, the data are available
-in [this private Teams folder](https://usherbrooke.sharepoint.com/:f:/r/sites/GroupeNano/Documents%20partages/Dataset%20Machine%20Learning/QDSD?csf=1&web=1&e=NyI7i5)
-.
+The experimental data should be downloaded from [QDSD](https://doi.org/10.5281/zenodo.11402792), and (at least) the
+file `originals.zip` should be downloaded and unzipped in the `data` folder.
 
-You need download this folder and unzip in into a `data` folder at the root of this project.
+The folder is organized as follows:
 
-The folder is organised as:
+* __originals.zip__ - The original data we received from experimentalists (before any processing), grouped by origins.
+  No data processing was applied.
+* __raw_clean.zip__ - Compressed files containing all data. Each CSV file is a stability diagram. The CSV has 3
+  columns: `x, y, z`. Where `x` and `y` are the swiped gate voltages in Volt and `z` is the measured electric current in
+  Amper. No data processing has been applied yet.
+* __interpolated_csv.zip__ - Compressed files containing all diagrams as CSV 2D arrays. Interpolation and float rounding
+  applied (data loss).
+* __interpolated_images.zip__ - Compressed files containing all diagrams as PNG images. They are mainly used for
+  transition line and charge area labeling. Interpolation and extreme values filter applied (data loss).
+* __labels.json__ - Transition line and charge area labels (exported from [Labelbox](https://labelbox.com/))
 
-* __originals/__ - The original data as we received it (before any processing), classed by origin.  
-  No data processing applied.
-* __raw_clean.zip__ - Compressed files containing all data, each CSV file is a stability diagram. The CSV have 3
-  columns: `x, y, z`. Where `x` and `y` are the gate tension in V and `z` is the measured electric current in A.  
-  No data processing applied.
-* __interpolated_csv.zip__ - Compressed files containing all diagrams as CSV 2D arrays.  
-  Interpolation and rounding applied (data loss).
-* __interpolated_images.zip__ - Compressed files containing all diagrams as PNG images. This is mainly used to manually
-  labeled the dataset.  
-  Interpolation and extreme values filter applied (data loss).
-* __labels.json__ - Line and charge area labels (exported from [Labelbox](https://labelbox.com/))
+# Data flow
+
+![Process flow](doc/process_flow.drawio.svg)
 
 # Data processing
 
-The data processing is kept minimal to be as close as possible to the reality of experimentation. However, in some case
-the alteration of data was necessary to be adapted to machine learning applications.
-
-![Process flow](doc/process_flow.svg?sanitize=true)
+The data processing is kept minimal to be as close as possible to the reality of experimentation.
+However, in some cases, the alteration of data was necessary to be adapted to machine learning applications.
 
 ## Interpolation
 
-It is necessary to have the same constant voltage variation between measurements in every stability diagrams. So we use
-the 'nearest' interpolation method to upscale or downscale the resolution of the `x` or `y` axes when it was necessary.
-
-The choice of the 'nearest' interpolation instead of 'linear' or other type of interpolation is motivated by the idea to
-not smooth the values and keeping the original variability.
-
-In the current version, the standard voltage variation is `2.5mV`.
+To have the same constant voltage step between measurements in all stability diagrams, we interpolate the data.
+The 'nearest' interpolation method is used to upscale or downscale the resolution of the `x` or `y` axes when it is
+necessary.
 
 ## Filter extreme values
 
-To visually represent the diagrams it was necessary to remove extreme values.
-
+To visually represent the diagrams (for labeling), it was necessary to remove extreme values.
 This was done by limiting the values between the 1st and the 99th percentile for each diagram.
 
 ## Rounding
 
 In some case the voltage value is rounded to 6 decimals (microvolt).
-
-# Removed diagrams
-
-Some unusable original stability diagrams were removed during the cleaning process:
-
-* louis_gaudreau
-  * jul25300s: the voltage range of `x` axis is too small
-  * jul29100s: the voltage range of `x` axis is too small
-  * sep03010s: no line found
 
 # Processing Scripts
 
@@ -67,11 +52,11 @@ Some unusable original stability diagrams were removed during the cleaning proce
 * __raw_to_images/__: raw_clean => interpolated_csv & interpolated_images  
   Interpolate data to have plottable images ready to be annotated.
 
-# Annotation tool
-
-[Labelbox](https://labelbox.com/)
 
 # Data contribution
 
-* Louis Gaudreau's research group (https://doi.org/10.1063/1.3258663)
-* Michel Pioro Ladriere research group
+The original data have been provided by different research groups based on the following references:
+
+* [Rochette et al. 2019](https://doi.org/10.1063/1.5091111) (referred as `michel_pioro_ladriere`)
+* [Gaudreau et al. 2009](https://doi.org/10.1063/1.3258663) (referred as `louis_gaudreau`)
+* [Stuyck et al. 2021](https://doi.org/10.23919/VLSICircuits52068.2021.9492427) (referred as `eva_dupont_ferrier`)
